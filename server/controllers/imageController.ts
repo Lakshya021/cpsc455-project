@@ -6,10 +6,32 @@ import { Storage } from "@google-cloud/storage";
 import { ObjectId } from "mongodb";
 import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
-dotenv.config()
+dotenv.config();
 const storage = new Storage({ keyFilename: "google-cloud-key.json" });
-const bucket_name: string = process.env.BUCKET_NAME || '';
+const bucket_name: string = process.env.BUCKET_NAME || "";
 const bucket = storage.bucket(bucket_name);
+import * as vision from "@google-cloud/vision";
+const client = new vision.ImageAnnotatorClient();
+const username: string = "mango12345";
+
+export const getImageLabels = async (url: string): Promise<string[]> => {
+  const request = {
+    image: { source: { imageUri: url } },
+    features: [{ type: "LABEL_DETECTION" }],
+  };
+
+  const [result] = await client.annotateImage(request);
+  const imageLabels: string[] = [];
+
+  if (result.labelAnnotations) {
+    for (const annotation of result.labelAnnotations) {
+      if (annotation.description) {
+        imageLabels.push(annotation.description);
+      }
+    }
+  }
+  return imageLabels;
+};
 
 export const uploadImage = async (req: Request, res: Response) => {
   try {
@@ -19,7 +41,7 @@ export const uploadImage = async (req: Request, res: Response) => {
     }
 
     // Create a new blob in the bucket and upload the file data.
-    const blob = bucket.file(req.file!.originalname);
+    const blob = bucket.file(`${username}/images/${req.file!.originalname}`);
     const blobStream = blob.createWriteStream({
       resumable: false,
     });
@@ -32,27 +54,33 @@ export const uploadImage = async (req: Request, res: Response) => {
       const publicUrl = util.format(
         `https://storage.googleapis.com/${bucket.name}/${blob.name}`
       );
+      
+      const imageLabels: string[] = await getImageLabels(publicUrl);
 
       const image = {
         id: uuidv4(),
         url: publicUrl,
         description:
           "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-        likes:[]
-      }
+        likes: [],
+      };
 
       await User.findByIdAndUpdate(
         { _id: new ObjectId(req.params.userid) },
         {
           $push: {
-            images: image
+            images: image,
+            imageCategories: {
+              $each: imageLabels
+            }
           },
         }
       );
 
       try {
-        // Make the file public
-        await bucket.file(req.file!.originalname).makePublic();
+        await bucket
+          .file(`${username}/images/${req.file!.originalname}`)
+          .makePublic();
       } catch (err) {
         return res.status(500).send({
           message: `Uploaded the file successfully: ${
@@ -63,7 +91,8 @@ export const uploadImage = async (req: Request, res: Response) => {
       }
       res.status(200).send({
         message: "Uploaded the file successfully: " + req.file!.originalname,
-        image: image
+        image: image,
+        imageLabels: imageLabels
       });
     });
     blobStream.end(req.file!.buffer);
@@ -81,25 +110,28 @@ export const uploadImage = async (req: Request, res: Response) => {
  */
 
 export const likePost = async (req: Request, res: Response) => {
-  const {postid, userid} = req.params;
+  const { postid, userid } = req.params;
   let result;
 
   try {
-    result = await User.findOneAndUpdate({
-          "images.id": postid
+    result = await User.findOneAndUpdate(
+      {
+        "images.id": postid,
+      },
+      {
+        $addToSet: {
+          "images.$[images].likes": userid,
         },
-        {
-          $addToSet: {
-            "images.$[images].likes": userid
-          }
-        },
-        {
-          arrayFilters: [
-            {
-              "images.id": postid
-            }
-          ], new: true
-        })
+      },
+      {
+        arrayFilters: [
+          {
+            "images.id": postid,
+          },
+        ],
+        new: true,
+      }
+    );
   } catch (err) {
     return res.status(400).json({
       message: "Error liking post",
@@ -111,8 +143,7 @@ export const likePost = async (req: Request, res: Response) => {
     message: "Successfully liked post",
     data: result.images,
   });
-
-}
+};
 
 /**
  * @param Expected request body: None, request url parameters: id of user who unliked the post, id of unliked post
@@ -121,25 +152,28 @@ export const likePost = async (req: Request, res: Response) => {
  */
 
 export const unlikePost = async (req: Request, res: Response) => {
-  const {postid, userid} = req.params;
+  const { postid, userid } = req.params;
   let result;
 
   try {
-    result = await User.findOneAndUpdate({
-          "images.id": postid
+    result = await User.findOneAndUpdate(
+      {
+        "images.id": postid,
+      },
+      {
+        $pull: {
+          "images.$[images].likes": userid,
         },
-        {
-          $pull: {
-            "images.$[images].likes": userid
-          }
-        },
-        {
-          arrayFilters: [
-            {
-              "images.id": postid
-            }
-          ], new: true
-        })
+      },
+      {
+        arrayFilters: [
+          {
+            "images.id": postid,
+          },
+        ],
+        new: true,
+      }
+    );
   } catch (err) {
     res.status(400).json({
       message: "Error unliking post",
@@ -151,5 +185,4 @@ export const unlikePost = async (req: Request, res: Response) => {
     message: "Successfully disliked post",
     data: result.images,
   });
-
-}
+};

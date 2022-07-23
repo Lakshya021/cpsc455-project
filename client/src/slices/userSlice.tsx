@@ -24,13 +24,17 @@ export const userSlice = createSlice({
             profileImageUrl: profileImageUrl,
             images: images,
             followers: [],
-            followings: []
+            followings: [],
+            imageCategories: [],
         },
         authToken: undefined,
     } as SliceState,
     reducers: {
         addImage(state, action) {
             state.userData.images.push(action.payload)
+        },
+        addImageCategories(state, action) {
+            state.userData.imageCategories.push(...action.payload);
         },
         setImages(state, action) {
             state.userData.images = action.payload;
@@ -59,6 +63,9 @@ export const userSlice = createSlice({
         },
         setProfileImageUrl(state, action) {
             state.userData.profileImageUrl = action.payload;
+        },
+        setImageCategories(state, action) {
+            state.userData.imageCategories = action.payload;
         }
     },
 
@@ -70,7 +77,7 @@ export const userSlice = createSlice({
 
 
 export const { addImage, removeImage, updateUserBio, setUsername, 
-    setImages, setAuthToken, setFollowers, setFollowings, setProfileImageUrl,setUserId } = userSlice.actions;
+    setImages, setAuthToken, setFollowers, setFollowings, setProfileImageUrl,setUserId, setImageCategories, addImageCategories } = userSlice.actions;
 
 export const selectUserData = (state: any) => state.user.userData;
 export const selectAuthToken = (state: any) => state.user.authToken;

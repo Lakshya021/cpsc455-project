@@ -17,7 +17,6 @@ router.post("/api/users/register", registerUser);
 router.post("/api/users/login", loginUser);
 router.post("/api/users/forgot-password", forgotPassword);
 router.put("/api/users/reset-password/:resetToken", resetPassword);
-
 router.put("/api/users/:id", editUser);
 
 /**

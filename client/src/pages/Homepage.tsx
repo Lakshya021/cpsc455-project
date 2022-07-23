@@ -4,7 +4,7 @@ import ImageCard from "../components/ImageCard";
 import { useEffect, useState } from "react";
 import TabMenu from "../components/TabMenu";
 import {
-    selectUserData, setAuthToken, 
+    selectUserData, setAuthToken,
     setFollowers, setFollowings, setUserId,
     setProfileImageUrl
 } from "../slices/userSlice"
@@ -12,7 +12,7 @@ import { UserDetails } from "../types";
 import { useDispatch, useSelector } from "react-redux";
 import "../App/App.css"
 import { fetchUserData } from "../util/functions";
-import { setUsername, setImages, selectAuthToken } from "../slices/userSlice";
+import { setUsername, setImages, selectAuthToken, setImageCategories } from "../slices/userSlice";
 import { useNavigate } from "react-router-dom";
 import Popup from "../components/Popup";
 
@@ -41,7 +41,7 @@ const Homepage = () => {
 
             try {
                 const response = await fetchUserData(authToken);
-                const { username, _id, images, followers, followings, profileImageUrl } = response.data;
+                const { username, _id, images, followers, followings, profileImageUrl, imageCategories } = response.data;
 
                 dispatch(setUsername(username));
                 dispatch(setUserId(_id));
@@ -49,6 +49,7 @@ const Homepage = () => {
                 dispatch(setFollowers(followers));
                 dispatch(setFollowings(followings));
                 dispatch(setProfileImageUrl(profileImageUrl));
+                dispatch(setImageCategories(imageCategories));
             } catch (err) {
                 console.log(err);
 
@@ -60,17 +61,13 @@ const Homepage = () => {
 
     const userData: UserDetails = useSelector(selectUserData);
 
-    const { images, username, userBio, profileImageUrl} = userData;
+    const { images, username, userBio, profileImageUrl } = userData;
     const [option, setOption] = useState(0);
-    console.log("userData", userData);
     const optionChange = (_event: any, selected: number) => {
         setOption(selected);
     };
 
-    // const openPopup = () => {
-    //     setShowFollowers(true);
-    //     return <Popup />
-    // }
+
     return (
         <div className="bg-[#FAFAFA] ">
             <div>
@@ -92,16 +89,18 @@ const Homepage = () => {
                             <div className="">
                                 <span className="font-bold">{userData.images.length}</span> posts
                             </div>
-                            <button className="" id="followers" 
-                            onClick={() => {
-                                setModalTarget("followers");
-                                setShowModal(true)}}>
+                            <button className="" id="followers"
+                                onClick={() => {
+                                    setModalTarget("followers");
+                                    setShowModal(true)
+                                }}>
                                 <span className="font-bold">{userData.followers.length}</span> followers
                             </button>
-                            <button className="" id="followings" 
-                            onClick={() => {
-                                setModalTarget("followings");
-                                setShowModal(true)}} >
+                            <button className="" id="followings"
+                                onClick={() => {
+                                    setModalTarget("followings");
+                                    setShowModal(true)
+                                }} >
                                 <span className="font-bold">{userData.followings.length}</span> following
                             </button>
                         </div>
@@ -124,7 +123,7 @@ const Homepage = () => {
                     </div>
                 ))}
             </div>
-            <Popup onClose={() => setShowModal(false)} visible={showModal} target={modalTarget} userData={userData}/>
+            <Popup onClose={() => setShowModal(false)} visible={showModal} target={modalTarget} userData={userData} />
         </div>
     );
 }

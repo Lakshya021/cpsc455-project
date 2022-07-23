@@ -13,4 +13,5 @@ export interface UserDetails {
   images: ImageData[];
   followers: Array<string>;
   followings: Array<string>;
+  imageCategories: Array<string>;
 }

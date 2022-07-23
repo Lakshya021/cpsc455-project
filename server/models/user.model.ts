@@ -4,50 +4,57 @@ import jwt from "jsonwebtoken";
 import * as crypto from "crypto";
 
 const userSchema = new mongoose.Schema(
-    {
-        username: {
-            type: String,
-            required: [true, "Please enter a username"],
-            trim: true,
-            unique: true,
-        },
-        email: {
-            type: String,
-            required: true,
-            unique: true,
-            match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
-        },
-        password: {
-            type: String,
-            required: true,
-            minlength: [6, "Minimum password length is 6 characters"]
-        },
-        followers: {
-            type: Array,
-            default: []
-        },
-        followings: {
-            type: Array,
-            defaul: []
-        },
-        profilePicture: {
-            type: String,
-            default: ""
-        },
-        bio: {
-            type: String,
-            default: "",
-            maxlength: 50
-        },
-        images: {
-            type: [{id: String, url: String, description: String, likes: []}],
-        },
-        resetPasswordToken: String,
-        resetPasswordExpire: Date,
-      },
-      {
-        timestamps: true,
-      }
+  {
+    username: {
+      type: String,
+      required: [true, "Please enter a username"],
+      trim: true,
+      unique: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      match: [
+        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+        "Please fill a valid email address",
+      ],
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: [6, "Minimum password length is 6 characters"],
+    },
+    followers: {
+      type: Array,
+      default: [],
+    },
+    followings: {
+      type: Array,
+      defaul: [],
+    },
+    profilePicture: {
+      type: String,
+      default: "",
+    },
+    imageCategories: {
+      type: Array<String>,
+      default: [],
+    },
+    bio: {
+      type: String,
+      default: "",
+      maxlength: 50,
+    },
+    images: {
+      type: [{ id: String, url: String, description: String, likes: [] }],
+    },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
+  },
+  {
+    timestamps: true,
+  }
 );
 
 // fires a function before doc is saved to db. In this case we create a salt, apply it to the password, then hash it.
