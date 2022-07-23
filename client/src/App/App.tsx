@@ -4,8 +4,9 @@ import './App.css';
 import SignIn from "../pages/SignIn";
 import Homepage from "../pages/Homepage";
 import Signup from "../pages/Signup";
-import PasswordReset from "../pages/PasswordReset"
-import ForgotPassword from "../pages/ForgotPassword"
+import PasswordReset from "../pages/PasswordReset";
+import ForgotPassword from "../pages/ForgotPassword";
+import SettingPage from "../pages/SettingPage";
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
                 <Route path="/forgot-password" element ={<ForgotPassword/>}/>
                 <Route path="/password-reset/:resetToken" element ={<PasswordReset/>}/>
                 <Route path="/homepage" element={<Homepage/>}/>
+                <Route path="/settings" element={<SettingPage/>}/>
             </Routes>
 
         </div>
